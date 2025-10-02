@@ -1,0 +1,24 @@
+{
+  "name": "match3-game",
+  "version": "1.0.0",
+  "description": "Un juego Match-3 profesional desarrollado con TypeScript y PixiJS",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "jsdom": "^23.0.0"
+  },
+  "dependencies": {
+    "pixi.js": "^7.4.0"
+  }
+}
