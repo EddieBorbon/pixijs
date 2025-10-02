@@ -1,6 +1,6 @@
 /**
- * Servicio de audio para manejar música de fondo y efectos de sonido.
- * Utiliza la Web Audio API para un mejor control del audio.
+ * Audio service for handling background music and sound effects.
+ * Uses Web Audio API for better audio control.
  */
 export class AudioService {
   private static instance: AudioService;
@@ -19,7 +19,7 @@ export class AudioService {
   }
 
   /**
-   * Obtiene la instancia singleton del servicio de audio
+   * Gets the singleton instance of the audio service
    */
   public static getInstance(): AudioService {
     if (!AudioService.instance) {
@@ -29,19 +29,19 @@ export class AudioService {
   }
 
   /**
-   * Inicializa el contexto de audio
+   * Initializes the audio context
    */
   private initializeAudioContext(): void {
     try {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (error) {
-      console.warn('No se pudo inicializar el contexto de audio:', error);
+      console.warn('Could not initialize audio context:', error);
     }
   }
 
   /**
-   * Carga la música de fondo
-   * @param musicPath - Ruta del archivo de música
+   * Loads background music
+   * @param musicPath - Path to the music file
    */
   public async loadBackgroundMusic(musicPath: string): Promise<void> {
     try {
@@ -49,19 +49,19 @@ export class AudioService {
       this.backgroundMusic.loop = true;
       this.backgroundMusic.preload = 'auto';
       
-      // Configurar volumen inicial
+      // Set initial volume
       this.updateBackgroundMusicVolume();
       
-      console.log('Música de fondo cargada:', musicPath);
+      console.log('Background music loaded:', musicPath);
     } catch (error) {
-      console.error('Error al cargar la música de fondo:', error);
+      console.error('Error loading background music:', error);
     }
   }
 
   /**
-   * Carga un efecto de sonido
-   * @param name - Nombre del efecto
-   * @param soundPath - Ruta del archivo de sonido
+   * Loads a sound effect
+   * @param name - Effect name
+   * @param soundPath - Path to the sound file
    */
   public async loadSoundEffect(name: string, soundPath: string): Promise<void> {
     try {
@@ -69,14 +69,14 @@ export class AudioService {
       audio.preload = 'auto';
       this.soundEffects.set(name, audio);
       
-      console.log('Efecto de sonido cargado:', name, soundPath);
+      console.log('Sound effect loaded:', name, soundPath);
     } catch (error) {
-      console.error('Error al cargar el efecto de sonido:', name, error);
+      console.error('Error loading sound effect:', name, error);
     }
   }
 
   /**
-   * Reproduce la música de fondo
+   * Plays background music
    */
   public async playBackgroundMusic(): Promise<void> {
     if (!this.backgroundMusic || !this.isMusicEnabled || this.isMuted) {
@@ -84,42 +84,42 @@ export class AudioService {
     }
 
     try {
-      // Reanudar el contexto de audio si está suspendido
+      // Resume audio context if suspended
       if (this.audioContext && this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
       }
 
       await this.backgroundMusic.play();
-      console.log('Música de fondo iniciada');
+      console.log('Background music started');
     } catch (error) {
-      console.error('Error al reproducir música de fondo:', error);
+      console.error('Error playing background music:', error);
     }
   }
 
   /**
-   * Pausa la música de fondo
+   * Pauses background music
    */
   public pauseBackgroundMusic(): void {
     if (this.backgroundMusic) {
       this.backgroundMusic.pause();
-      console.log('Música de fondo pausada');
+      console.log('Background music paused');
     }
   }
 
   /**
-   * Detiene la música de fondo
+   * Stops background music
    */
   public stopBackgroundMusic(): void {
     if (this.backgroundMusic) {
       this.backgroundMusic.pause();
       this.backgroundMusic.currentTime = 0;
-      console.log('Música de fondo detenida');
+      console.log('Background music stopped');
     }
   }
 
   /**
-   * Reproduce un efecto de sonido
-   * @param name - Nombre del efecto
+   * Plays a sound effect
+   * @param name - Effect name
    */
   public async playSoundEffect(name: string): Promise<void> {
     const audio = this.soundEffects.get(name);
@@ -128,52 +128,52 @@ export class AudioService {
     }
 
     try {
-      // Reanudar el contexto de audio si está suspendido
+      // Resume audio context if suspended
       if (this.audioContext && this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
       }
 
-      // Reiniciar el audio si ya está reproduciéndose
+      // Restart audio if already playing
       audio.currentTime = 0;
       await audio.play();
     } catch (error) {
-      console.error('Error al reproducir efecto de sonido:', name, error);
+      console.error('Error playing sound effect:', name, error);
     }
   }
 
   /**
-   * Establece el volumen maestro
-   * @param volume - Volumen de 0 a 1
+   * Sets master volume
+   * @param volume - Volume from 0 to 1
    */
   public setMasterVolume(volume: number): void {
     this.masterVolume = Math.max(0, Math.min(1, volume));
     this.updateBackgroundMusicVolume();
     this.updateSoundEffectsVolume();
-    console.log('Volumen maestro establecido:', this.masterVolume);
+    console.log('Master volume set:', this.masterVolume);
   }
 
   /**
-   * Establece el volumen de la música de fondo
-   * @param volume - Volumen de 0 a 1
+   * Sets background music volume
+   * @param volume - Volume from 0 to 1
    */
   public setMusicVolume(volume: number): void {
     this.musicVolume = Math.max(0, Math.min(1, volume));
     this.updateBackgroundMusicVolume();
-    console.log('Volumen de música establecido:', this.musicVolume);
+    console.log('Music volume set:', this.musicVolume);
   }
 
   /**
-   * Establece el volumen de los efectos de sonido
-   * @param volume - Volumen de 0 a 1
+   * Sets sound effects volume
+   * @param volume - Volume from 0 to 1
    */
   public setSfxVolume(volume: number): void {
     this.sfxVolume = Math.max(0, Math.min(1, volume));
     this.updateSoundEffectsVolume();
-    console.log('Volumen de efectos establecido:', this.sfxVolume);
+    console.log('SFX volume set:', this.sfxVolume);
   }
 
   /**
-   * Actualiza el volumen de la música de fondo
+   * Updates background music volume
    */
   private updateBackgroundMusicVolume(): void {
     if (this.backgroundMusic) {
@@ -182,7 +182,7 @@ export class AudioService {
   }
 
   /**
-   * Actualiza el volumen de todos los efectos de sonido
+   * Updates volume of all sound effects
    */
   private updateSoundEffectsVolume(): void {
     this.soundEffects.forEach(audio => {
@@ -191,7 +191,7 @@ export class AudioService {
   }
 
   /**
-   * Alterna el estado de silencio
+   * Toggles mute state
    */
   public toggleMute(): void {
     this.isMuted = !this.isMuted;
@@ -202,11 +202,11 @@ export class AudioService {
       this.playBackgroundMusic();
     }
     
-    console.log('Silencio:', this.isMuted ? 'activado' : 'desactivado');
+    console.log('Mute:', this.isMuted ? 'enabled' : 'disabled');
   }
 
   /**
-   * Alterna la música de fondo
+   * Toggles background music
    */
   public toggleMusic(): void {
     this.isMusicEnabled = !this.isMusicEnabled;
@@ -217,82 +217,82 @@ export class AudioService {
       this.pauseBackgroundMusic();
     }
     
-    console.log('Música:', this.isMusicEnabled ? 'activada' : 'desactivada');
+    console.log('Music:', this.isMusicEnabled ? 'enabled' : 'disabled');
   }
 
   /**
-   * Alterna los efectos de sonido
+   * Toggles sound effects
    */
   public toggleSfx(): void {
     this.isSfxEnabled = !this.isSfxEnabled;
-    console.log('Efectos de sonido:', this.isSfxEnabled ? 'activados' : 'desactivados');
+    console.log('Sound effects:', this.isSfxEnabled ? 'enabled' : 'disabled');
   }
 
   /**
-   * Obtiene el volumen maestro actual
+   * Gets current master volume
    */
   public getMasterVolume(): number {
     return this.masterVolume;
   }
 
   /**
-   * Obtiene el volumen de música actual
+   * Gets current music volume
    */
   public getMusicVolume(): number {
     return this.musicVolume;
   }
 
   /**
-   * Obtiene el volumen de efectos actual
+   * Gets current effects volume
    */
   public getSfxVolume(): number {
     return this.sfxVolume;
   }
 
   /**
-   * Verifica si está silenciado
+   * Checks if muted
    */
   public isMutedState(): boolean {
     return this.isMuted;
   }
 
   /**
-   * Verifica si la música está habilitada
+   * Checks if music is enabled
    */
   public isMusicEnabledState(): boolean {
     return this.isMusicEnabled;
   }
 
   /**
-   * Verifica si los efectos están habilitados
+   * Checks if effects are enabled
    */
   public isSfxEnabledState(): boolean {
     return this.isSfxEnabled;
   }
 
   /**
-   * Obtiene el volumen maestro como porcentaje (0-100)
+   * Gets master volume as percentage (0-100)
    */
   public getMasterVolumePercent(): number {
     return Math.round(this.masterVolume * 100);
   }
 
   /**
-   * Obtiene el volumen de música como porcentaje (0-100)
+   * Gets music volume as percentage (0-100)
    */
   public getMusicVolumePercent(): number {
     return Math.round(this.musicVolume * 100);
   }
 
   /**
-   * Obtiene el volumen de efectos como porcentaje (0-100)
+   * Gets effects volume as percentage (0-100)
    */
   public getSfxVolumePercent(): number {
     return Math.round(this.sfxVolume * 100);
   }
 
   /**
-   * Libera recursos del servicio de audio
+   * Frees audio service resources
    */
   public destroy(): void {
     this.stopBackgroundMusic();
@@ -302,6 +302,6 @@ export class AudioService {
       this.audioContext.close();
     }
     
-    console.log('Servicio de audio destruido');
+    console.log('Audio service destroyed');
   }
 }

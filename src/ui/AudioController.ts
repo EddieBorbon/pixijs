@@ -1,6 +1,6 @@
 /**
- * Controlador de audio para la interfaz de usuario.
- * Maneja los controles de volumen y mute desde el HTML.
+ * Audio controller for the user interface.
+ * Handles volume controls and mute from HTML.
  */
 export class AudioController {
   private audioService: any;
@@ -11,7 +11,7 @@ export class AudioController {
   }
 
   /**
-   * Inicializa los controles de audio
+   * Initializes audio controls
    */
   public initialize(): void {
     if (this.isInitialized) return;
@@ -21,25 +21,14 @@ export class AudioController {
     this.updateUI();
 
     this.isInitialized = true;
-    console.log('Controles de audio inicializados');
+    console.log('Audio controls initialized');
   }
 
   /**
-   * Configura los controles de volumen
+   * Sets up volume controls
    */
   private setupVolumeControls(): void {
-    // Control de volumen maestro
-    const masterSlider = document.getElementById('master-volume-slider') as HTMLInputElement;
-    if (masterSlider) {
-      masterSlider.addEventListener('input', (e) => {
-        const target = e.target as HTMLInputElement;
-        const volume = parseInt(target.value) / 100;
-        this.audioService.setMasterVolume(volume);
-        this.updateMasterVolumeIcon(volume);
-      });
-    }
-
-    // Control de volumen de música
+    // Music volume control
     const musicSlider = document.getElementById('music-volume-slider') as HTMLInputElement;
     if (musicSlider) {
       musicSlider.addEventListener('input', (e) => {
@@ -50,7 +39,7 @@ export class AudioController {
       });
     }
 
-    // Control de volumen de efectos
+    // Effects volume control
     const sfxSlider = document.getElementById('sfx-volume-slider') as HTMLInputElement;
     if (sfxSlider) {
       sfxSlider.addEventListener('input', (e) => {
@@ -63,7 +52,7 @@ export class AudioController {
   }
 
   /**
-   * Configura el control de mute
+   * Sets up mute control
    */
   private setupMuteControl(): void {
     const muteControl = document.getElementById('mute-control');
@@ -76,44 +65,24 @@ export class AudioController {
   }
 
   /**
-   * Actualiza toda la interfaz de usuario
+   * Updates entire user interface
    */
   private updateUI(): void {
-    this.updateMasterVolumeIcon(this.audioService.getMasterVolume());
     this.updateMusicIcon(this.audioService.getMusicVolume());
     this.updateSfxIcon(this.audioService.getSfxVolume());
     this.updateMuteIcon();
 
-    // Actualizar valores de los sliders
-    const masterSlider = document.getElementById('master-volume-slider') as HTMLInputElement;
+    // Update slider values
     const musicSlider = document.getElementById('music-volume-slider') as HTMLInputElement;
     const sfxSlider = document.getElementById('sfx-volume-slider') as HTMLInputElement;
 
-    if (masterSlider) masterSlider.value = this.audioService.getMasterVolumePercent().toString();
     if (musicSlider) musicSlider.value = this.audioService.getMusicVolumePercent().toString();
     if (sfxSlider) sfxSlider.value = this.audioService.getSfxVolumePercent().toString();
   }
 
-  /**
-   * Actualiza el icono del volumen maestro
-   */
-  private updateMasterVolumeIcon(volume: number): void {
-    const icon = document.getElementById('master-volume-icon');
-    if (!icon) return;
-
-    if (volume === 0) {
-      icon.textContent = '🔇';
-    } else if (volume < 0.3) {
-      icon.textContent = '🔈';
-    } else if (volume < 0.7) {
-      icon.textContent = '🔉';
-    } else {
-      icon.textContent = '🔊';
-    }
-  }
 
   /**
-   * Actualiza el icono de música
+   * Updates music icon
    */
   private updateMusicIcon(volume: number): void {
     const icon = document.getElementById('music-icon');
@@ -129,7 +98,7 @@ export class AudioController {
   }
 
   /**
-   * Actualiza el icono de efectos de sonido
+   * Updates sound effects icon
    */
   private updateSfxIcon(volume: number): void {
     const icon = document.getElementById('sfx-icon');
@@ -147,7 +116,7 @@ export class AudioController {
   }
 
   /**
-   * Actualiza el icono de mute
+   * Updates mute icon
    */
   private updateMuteIcon(): void {
     const icon = document.getElementById('mute-icon');
@@ -164,10 +133,10 @@ export class AudioController {
   }
 
   /**
-   * Destruye el controlador
+   * Destroys the controller
    */
   public destroy(): void {
-    // Los event listeners se limpiarán automáticamente cuando se destruya el DOM
+    // Event listeners will be cleaned up automatically when DOM is destroyed
     this.isInitialized = false;
   }
 }

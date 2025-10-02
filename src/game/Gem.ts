@@ -218,6 +218,15 @@ export class Gem {
   }
 
   /**
+   * Verifica si esta gema se puede mover
+   * @returns true si se puede mover
+   */
+  canMove(): boolean {
+    // Los obstáculos no se pueden mover
+    return !this.isObstacle();
+  }
+
+  /**
    * Verifica si esta gema es especial
    * @returns true si la gema tiene un tipo especial
    */

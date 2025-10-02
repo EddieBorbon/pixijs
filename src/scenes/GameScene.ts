@@ -7,8 +7,8 @@ import { MovesDisplay } from '../ui/MovesDisplay.js';
 import { BOARD_CONFIG, GAME_EVENTS, GAME_CONFIG } from '../game/constants';
 
 /**
- * Escena principal del juego Match-3.
- * Maneja el tablero, la UI y la interacción del usuario.
+ * Main game scene for Match-3.
+ * Handles the board, UI and user interaction.
  */
 export class GameScene implements IScene {
   public readonly container: Container;
@@ -39,71 +39,71 @@ export class GameScene implements IScene {
   }
 
   /**
-   * Inicializa la escena del juego
-   * @param _data - Datos opcionales de inicialización
+   * Initializes the game scene
+   * @param _data - Optional initialization data
    */
   async enter(_data?: any): Promise<void> {
-    console.log('Iniciando escena del juego');
+    console.log('Starting game scene');
     
-    // Resetear estado del juego
+    // Reset game state
     this.isGameOver = false;
     this.hideGameOverText();
     
-    // Actualizar displays
+    // Update displays
     this.scoreDisplay.updateScore(0);
     this.movesDisplay.updateMoves(GAME_CONFIG.INITIAL_MOVES);
     
-    // Configurar interacción del tablero
+    // Setup board interaction
     this.setupBoardInteraction();
     
-    console.log('Escena del juego inicializada');
+    console.log('Game scene initialized');
   }
 
   /**
-   * Limpia la escena cuando se sale
+   * Cleans up the scene when exiting
    */
   async exit(): Promise<void> {
-    console.log('Saliendo de la escena del juego');
+    console.log('Exiting game scene');
     
-    // Limpiar listeners de eventos
+    // Clear event listeners
     this.eventEmitter.off(GAME_EVENTS.SCORE_UPDATED, this.onScoreUpdated);
     this.eventEmitter.off(GAME_EVENTS.MOVES_UPDATED, this.onMovesUpdated);
     this.eventEmitter.off(GAME_EVENTS.GAME_OVER, this.onGameOver);
     
-    // Destruir componentes
+    // Destroy components
     this.board.destroy();
     this.scoreDisplay.destroy();
     this.movesDisplay.destroy();
   }
 
   /**
-   * Actualiza la escena en cada frame
-   * @param deltaTime - Tiempo transcurrido desde la última actualización
+   * Updates the scene each frame
+   * @param deltaTime - Time elapsed since last update
    */
   update(deltaTime: number): void {
-    // Actualizar displays de UI
+    // Update UI displays
     this.scoreDisplay.update(deltaTime);
     this.movesDisplay.update(deltaTime);
   }
 
   /**
-   * Maneja el redimensionamiento de la ventana
-   * @param width - Nuevo ancho
-   * @param height - Nuevo alto
+   * Handles window resizing
+   * @param width - New width
+   * @param height - New height
    */
   resize(width: number, height: number): void {
-    // Centrar el tablero
+    // Center the board
     const boardWidth = BOARD_CONFIG.COLUMNS * BOARD_CONFIG.CELL_SIZE;
     const boardHeight = BOARD_CONFIG.ROWS * BOARD_CONFIG.CELL_SIZE;
     
     this.board.x = (width - boardWidth) / 2;
-    this.board.y = (height - boardHeight) / 2 + 50; // Offset para la UI superior
+    this.board.y = (height - boardHeight) / 2 + 50; // Offset for top UI
     
-    // Reposicionar elementos de UI
+    // Reposition UI elements
     this.scoreDisplay.resize(width, height);
     this.movesDisplay.resize(width, height);
     
-    // Actualizar fondo
+    // Update background
     if (this.background instanceof Sprite) {
       this.background.width = width;
       this.background.height = height;
@@ -116,11 +116,11 @@ export class GameScene implements IScene {
   }
 
   /**
-   * Crea el fondo de la escena
-   * @returns Sprite del fondo o Graphics como fallback
+   * Creates the scene background
+   * @returns Background sprite or Graphics as fallback
    */
   private createBackground(): Sprite | Graphics {
-    // Intentar cargar el fondo personalizado
+    // Try to load custom background
     const backgroundTexture = Assets.cache.get('background_blur');
     
     if (backgroundTexture) {
@@ -129,10 +129,10 @@ export class GameScene implements IScene {
       backgroundSprite.height = 600;
       return backgroundSprite;
     } else {
-      // Fallback a fondo sólido si no se puede cargar la imagen
+      // Fallback to solid background if image cannot be loaded
       const background = new Graphics();
-      background.beginFill(0x2c3e50); // Color azul oscuro
-      background.drawRect(0, 0, 800, 600); // Tamaño inicial
+      background.beginFill(0x2c3e50); // Dark blue color
+      background.drawRect(0, 0, 800, 600); // Initial size
       background.endFill();
       return background;
     }
@@ -140,19 +140,19 @@ export class GameScene implements IScene {
 
 
   /**
-   * Configura el contenedor principal
+   * Sets up the main container
    */
   private setupContainer(): void {
-    // Agregar elementos al contenedor en orden de profundidad
+    // Add elements to container in depth order
     this.container.addChild(this.background);
     this.container.addChild(this.board);
-    // Los displays de UI se manejan a través del HTML, no de PixiJS
+    // UI displays are handled through HTML, not PixiJS
     // this.container.addChild(this.scoreDisplay.container);
     // this.container.addChild(this.movesDisplay.container);
   }
 
   /**
-   * Configura los listeners de eventos
+   * Sets up event listeners
    */
   private setupEventListeners(): void {
     this.eventEmitter.on(GAME_EVENTS.SCORE_UPDATED, this.onScoreUpdated.bind(this));
@@ -161,32 +161,32 @@ export class GameScene implements IScene {
   }
 
   /**
-   * Configura la interacción con el tablero
+   * Sets up board interaction
    */
   private setupBoardInteraction(): void {
-    // El tablero ya está configurado para interacción en su constructor
-    // Las gemas individuales manejan sus propios eventos
-    console.log('Interacción del tablero configurada');
+    // Board is already configured for interaction in its constructor
+    // Individual gems handle their own events
+    console.log('Board interaction configured');
   }
 
   /**
-   * Maneja la actualización de puntuación
-   * @param score - Nueva puntuación
+   * Handles score updates
+   * @param score - New score
    */
   private onScoreUpdated(score: number): void {
     this.scoreDisplay.updateScore(score);
   }
 
   /**
-   * Maneja la actualización de movimientos
-   * @param moves - Movimientos restantes
+   * Handles moves updates
+   * @param moves - Remaining moves
    */
   private onMovesUpdated(moves: number): void {
     this.movesDisplay.updateMoves(moves);
   }
 
   /**
-   * Maneja el fin del juego
+   * Handles game over
    */
   private onGameOver(): void {
     this.isGameOver = true;
@@ -194,7 +194,7 @@ export class GameScene implements IScene {
   }
 
   /**
-   * Muestra el texto de fin de juego
+   * Shows game over text
    */
   private showGameOverText(): void {
     if (this.gameOverText) {
@@ -211,16 +211,16 @@ export class GameScene implements IScene {
       align: 'center'
     });
     
-    this.gameOverText = new Text('¡JUEGO TERMINADO!', style);
+    this.gameOverText = new Text('GAME OVER!', style);
     this.gameOverText.anchor.set(0.5);
-    this.gameOverText.x = 400; // Centro de la pantalla
+    this.gameOverText.x = 400; // Center of screen
     this.gameOverText.y = 300;
     
     this.container.addChild(this.gameOverText);
   }
 
   /**
-   * Oculta el texto de fin de juego
+   * Hides game over text
    */
   private hideGameOverText(): void {
     if (this.gameOverText) {
@@ -229,16 +229,16 @@ export class GameScene implements IScene {
   }
 
   /**
-   * Obtiene el tablero del juego
-   * @returns Instancia del tablero
+   * Gets the game board
+   * @returns Board instance
    */
   getBoard(): Board {
     return this.board;
   }
 
   /**
-   * Verifica si el juego ha terminado
-   * @returns true si el juego ha terminado
+   * Checks if the game has finished
+   * @returns true if the game has finished
    */
   isGameFinished(): boolean {
     return this.isGameOver;

@@ -3,6 +3,7 @@ import { Gem } from './Gem';
 import { 
   GemColor, 
   SpecialType, 
+  ObstacleType,
   BOARD_CONFIG, 
   ANIMATION_CONFIG, 
   SCORE_CONFIG,
@@ -252,6 +253,12 @@ export class Board extends Container {
    */
   private async attemptSwap(gem1: Gem, gem2: Gem): Promise<void> {
     if (this.isProcessing) return;
+    
+    // Verificar que ambas gemas se pueden mover
+    if (!gem1.canMove() || !gem2.canMove()) {
+      console.log('No se puede intercambiar: una o ambas gemas son obstáculos');
+      return;
+    }
     
     this.isProcessing = true;
     this.eventEmitter.emit(GAME_EVENTS.SWAP_STARTED, { gem1, gem2 });
@@ -919,15 +926,21 @@ export class Board extends Container {
       for (let row = BOARD_CONFIG.ROWS - 1; row >= 0; row--) {
         const gem = this.gems[row][col];
         if (gem) {
-          if (row !== writeIndex) {
-            // Animar la caída de la gema
-            const dropPromise = this.animateGemDrop(gem, { row: writeIndex, col });
-            dropPromises.push(dropPromise);
-            
-            this.gems[writeIndex][col] = gem;
-            this.gems[row][col] = null;
+          // Solo hacer caer gemas que se pueden mover (no obstáculos)
+          if (gem.canMove()) {
+            if (row !== writeIndex) {
+              // Animar la caída de la gema
+              const dropPromise = this.animateGemDrop(gem, { row: writeIndex, col });
+              dropPromises.push(dropPromise);
+              
+              this.gems[writeIndex][col] = gem;
+              this.gems[row][col] = null;
+            }
+            writeIndex--;
+          } else {
+            // Los obstáculos no caen, pero ajustamos el índice de escritura
+            writeIndex--;
           }
-          writeIndex--;
         }
       }
     }

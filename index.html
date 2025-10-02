@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match-3 Game - Demostración Técnica</title>
+    <title>Match-3 Game - Technical Demo</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         * {
@@ -275,29 +275,25 @@
         
         <div id="loading-screen">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Cargando Match-3</div>
-            <div class="loading-subtitle">Preparando el juego...</div>
+            <div class="loading-text">Loading Match-3</div>
+            <div class="loading-subtitle">Preparing the game...</div>
         </div>
 
         <div id="game-info">
             <div class="info-panel">
-                <div class="info-label">Puntuación</div>
+                <div class="info-label">Score</div>
                 <div class="info-value" id="score-display">0</div>
             </div>
         </div>
 
         <div id="moves-info">
             <div class="info-panel">
-                <div class="info-label">Movimientos</div>
+                <div class="info-label">Moves</div>
                 <div class="info-value moves-value" id="moves-display">30</div>
             </div>
         </div>
 
         <div id="audio-controls">
-            <div class="audio-control" id="master-volume-control">
-                <span class="audio-icon" id="master-volume-icon">🔊</span>
-                <input type="range" class="volume-slider" id="master-volume-slider" min="0" max="100" value="50">
-            </div>
             <div class="audio-control" id="music-control">
                 <span class="audio-icon" id="music-icon">🎵</span>
                 <input type="range" class="volume-slider" id="music-volume-slider" min="0" max="100" value="30">
@@ -312,11 +308,11 @@
         </div>
 
         <div id="instructions">
-            Haz clic en dos gemas adyacentes para intercambiarlas y formar líneas de 3 o más gemas del mismo color
+            Click on two adjacent gems to swap them and form lines of 3 or more gems of the same color
         </div>
 
         <div class="error-message" id="error-message">
-            Error al cargar el juego. Por favor, recarga la página.
+            Error loading the game. Please reload the page.
         </div>
     </div>
 

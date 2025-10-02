@@ -8,8 +8,8 @@ import { AudioController } from './ui/AudioController';
 import { GAME_EVENTS } from './game/constants';
 
 /**
- * Punto de entrada principal de la aplicación Match-3.
- * Inicializa PixiJS, carga los assets y configura el juego.
+ * Main entry point for the Match-3 application.
+ * Initializes PixiJS, loads assets and configures the game.
  */
 class Match3Game {
   private app!: Application;
@@ -28,66 +28,66 @@ class Match3Game {
     this.facebookMock = FacebookMock.getInstance();
     this.audioService = AudioService.getInstance();
     this.audioController = new AudioController(this.audioService);
-    // app se inicializará en initializePixiJS()
+    // app will be initialized in initializePixiJS()
   }
 
   /**
-   * Inicializa la aplicación del juego
+   * Initializes the game application
    */
   async init(): Promise<void> {
     try {
-      console.log('Iniciando Match-3 Game...');
+      console.log('Starting Match-3 Game...');
       
-      // Mostrar pantalla de carga
+      // Show loading screen
       this.showLoadingScreen();
       
-      // Inicializar PixiJS
+      // Initialize PixiJS
       await this.initializePixiJS();
       
-      // Inicializar Facebook Mock
+      // Initialize Facebook Mock
       await this.initializeFacebookMock();
       
-      // Cargar assets
+      // Load assets
       await this.loadAssets();
       
-      // Cargar audio
+      // Load audio
       await this.loadAudio();
       
-      // Configurar escenas
+      // Setup scenes
       this.setupScenes();
       
-      // Configurar eventos globales
+      // Setup global events
       this.setupGlobalEvents();
       
-      // Inicializar controles de audio
+      // Initialize audio controls
       this.audioController.initialize();
       
-      // Iniciar el juego
+      // Start the game
       await this.startGame();
       
-      // Ocultar pantalla de carga
+      // Hide loading screen
       this.hideLoadingScreen();
       
       this.isInitialized = true;
-      console.log('Match-3 Game inicializado correctamente');
+      console.log('Match-3 Game initialized successfully');
       
     } catch (error) {
-      console.error('Error al inicializar el juego:', error);
-      this.showError('Error al inicializar el juego. Por favor, recarga la página.');
+      console.error('Error initializing the game:', error);
+      this.showError('Error initializing the game. Please reload the page.');
     }
   }
 
   /**
-   * Inicializa PixiJS con la configuración apropiada
+   * Initializes PixiJS with appropriate configuration
    */
   private async initializePixiJS(): Promise<void> {
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     
     if (!canvas) {
-      throw new Error('Canvas no encontrado');
+      throw new Error('Canvas not found');
     }
 
-    // En PixiJS v7+, usar Application directamente
+    // In PixiJS v7+, use Application directly
     this.app = new Application({
       view: canvas,
       width: 600,
@@ -98,93 +98,93 @@ class Match3Game {
       autoDensity: true,
     });
 
-    // Configurar el stage para que sea interactivo
+    // Configure the stage to be interactive
     this.app.stage.interactive = true;
     
-    console.log('PixiJS inicializado');
+    console.log('PixiJS initialized');
   }
 
   /**
-   * Inicializa el mock de Facebook Instant Games
+   * Initializes Facebook Instant Games mock
    */
   private async initializeFacebookMock(): Promise<void> {
     try {
       await this.facebookMock.initializeAsync();
-      console.log('Facebook Mock inicializado');
+      console.log('Facebook Mock initialized');
     } catch (error) {
-      console.warn('Error al inicializar Facebook Mock:', error);
-      // Continuar sin Facebook Mock
+      console.warn('Error initializing Facebook Mock:', error);
+      // Continue without Facebook Mock
     }
   }
 
   /**
-   * Carga los assets del juego
+   * Loads game assets
    */
   private async loadAssets(): Promise<void> {
     try {
-      // Cargar el fondo del juego
+      // Load game background
       await this.loadBackground();
       
-      // Cargar el atlas de dulces
+      // Load candy atlas
       await this.loadCandyAtlas();
       
-      console.log('Assets cargados correctamente');
+      console.log('Assets loaded successfully');
       
     } catch (error) {
-      console.error('Error al cargar assets:', error);
+      console.error('Error loading assets:', error);
       throw error;
     }
   }
 
   /**
-   * Carga los archivos de audio del juego
+   * Loads game audio files
    */
   private async loadAudio(): Promise<void> {
     try {
-      // Cargar música de fondo
+      // Load background music
       await this.audioService.loadBackgroundMusic('/music/jump and run - tropics.ogg');
       
-      // Cargar efectos de sonido
+      // Load sound effects
       await this.loadSoundEffects();
       
-      console.log('Audio cargado correctamente');
+      console.log('Audio loaded successfully');
       
     } catch (error) {
-      console.error('Error al cargar audio:', error);
-      // No lanzar error para que el juego pueda continuar sin audio
+      console.error('Error loading audio:', error);
+      // Don't throw error so game can continue without audio
     }
   }
 
   /**
-   * Carga todos los efectos de sonido
+   * Loads all sound effects
    */
   private async loadSoundEffects(): Promise<void> {
     const soundEffects = [
-      // Sonidos de selección e interacción
+      // Selection and interaction sounds
       { name: 'select', path: '/sfx/sfx_select.ogg' },
       { name: 'switch', path: '/sfx/sfx_switch.ogg' },
       { name: 'toggle', path: '/sfx/sfx_toggle.ogg' },
       
-      // Sonidos de matches exitosos
+      // Successful match sounds
       { name: 'match_normal', path: '/sfx/sfx_explosionNormal.ogg' },
       { name: 'match_special', path: '/sfx/sfx_explosionFlash.ogg' },
       { name: 'match_goo', path: '/sfx/sfx_explosionGoo.ogg' },
       { name: 'good1', path: '/sfx/good1.wav' },
       { name: 'good2', path: '/sfx/good2.wav' },
       
-      // Sonidos de error/movimiento inválido
+      // Error/invalid move sounds
       { name: 'wrong', path: '/sfx/wrong.wav' },
       { name: 'wrong2', path: '/sfx/wrong2.wav' },
       { name: 'hurt', path: '/sfx/sfx_hurt.ogg' },
       
-      // Sonidos especiales del juego
+      // Special game sounds
       { name: 'health', path: '/sfx/sfx_health.ogg' },
       { name: 'wave_clear', path: '/sfx/sfx_waveclear.ogg' },
       { name: 'resurrect', path: '/sfx/sfx_resurrect.ogg' },
       { name: 'shocked', path: '/sfx/sfx_shocked.ogg' },
       { name: 'ray', path: '/sfx/sfx_ray.ogg' },
       
-      // Sonidos de fin de juego
+      // Game over sounds
       { name: 'game_over', path: '/sfx/sfx_death.ogg' },
       { name: 'alarm', path: '/sfx/sfx_alarm.ogg' },
     ];
@@ -193,27 +193,27 @@ class Match3Game {
       try {
         await this.audioService.loadSoundEffect(effect.name, effect.path);
       } catch (error) {
-        console.warn(`No se pudo cargar el efecto de sonido ${effect.name}:`, error);
+        console.warn(`Could not load sound effect ${effect.name}:`, error);
       }
     }
   }
 
   /**
-   * Carga el atlas de dulces desde el archivo
+   * Loads candy atlas from file
    */
   private async loadCandyAtlas(): Promise<void> {
     try {
-      // Cargar la textura del atlas
+      // Load atlas texture
       const atlasTexture = await Assets.load('/sprites/assets_candy.png');
       Assets.cache.set('candy_atlas', atlasTexture);
       
-      // Crear texturas individuales para cada dulce
+      // Create individual textures for each candy
       this.createCandyTextures(atlasTexture);
       
-      console.log('Atlas de dulces cargado correctamente');
+      console.log('Candy atlas loaded successfully');
     } catch (error) {
-      console.warn('No se pudo cargar el atlas de dulces, usando texturas básicas:', error);
-      // Fallback a texturas básicas
+      console.warn('Could not load candy atlas, using basic textures:', error);
+      // Fallback to basic textures
       const gemTextures = this.createBasicGemTextures();
       Object.entries(gemTextures).forEach(([name, texture]) => {
         Assets.cache.set(name, texture);
@@ -222,56 +222,56 @@ class Match3Game {
   }
 
   /**
-   * Crea texturas individuales para cada dulce del atlas
-   * @param atlasTexture - Textura del atlas completo
+   * Creates individual textures for each candy from the atlas
+   * @param atlasTexture - Complete atlas texture
    */
   private createCandyTextures(atlasTexture: Texture): void {
-    // Mapeo de nombres de texturas a posiciones en el atlas
+    // Mapping of texture names to positions in the atlas
     const textureMap = {
-      // Dulces normales (fila 1, columnas 1-5)
+      // Normal candies (row 1, columns 1-5)
       'gem_yellow': { row: 0, col: 0 },
       'gem_blue': { row: 0, col: 1 },
       'gem_red': { row: 0, col: 2 },
       'gem_green': { row: 0, col: 3 },
       'gem_purple': { row: 0, col: 4 },
       
-      // Dulces rayados horizontales (fila 2, columnas 1-5)
+      // Horizontal striped candies (row 2, columns 1-5)
       'gem_yellow_striped_h': { row: 1, col: 0 },
       'gem_blue_striped_h': { row: 1, col: 1 },
       'gem_red_striped_h': { row: 1, col: 2 },
       'gem_green_striped_h': { row: 1, col: 3 },
       'gem_purple_striped_h': { row: 1, col: 4 },
       
-      // Dulces rayados verticales (fila 3, columnas 1-5)
+      // Vertical striped candies (row 3, columns 1-5)
       'gem_yellow_striped_v': { row: 2, col: 0 },
       'gem_blue_striped_v': { row: 2, col: 1 },
       'gem_red_striped_v': { row: 2, col: 2 },
       'gem_green_striped_v': { row: 2, col: 3 },
       'gem_purple_striped_v': { row: 2, col: 4 },
       
-      // Dulces envueltos (fila 4, columnas 1-5)
+      // Wrapped candies (row 4, columns 1-5)
       'gem_yellow_wrapped': { row: 3, col: 0 },
       'gem_blue_wrapped': { row: 3, col: 1 },
       'gem_red_wrapped': { row: 3, col: 2 },
       'gem_green_wrapped': { row: 3, col: 3 },
       'gem_purple_wrapped': { row: 3, col: 4 },
       
-      // Dulce especial que combina con todos (fila 1, columna 6)
+      // Special candy that combines with all (row 1, column 6)
       'color_bomb': { row: 0, col: 5 },
       
-      // Bloque que se derrite (fila 4, columnas 1-2)
+      // Melting block (row 4, columns 1-2)
       'block_melting_intact': { row: 3, col: 1 },    // Estado inicial (fila 4, col 2)
       'block_melting_damaged': { row: 3, col: 0 },   // Estado derretido (fila 4, col 1)
       
-      // Galleta que se destruye (fila 4, columnas 3-4)
+      // Cookie that gets destroyed (row 4, columns 3-4)
       'cookie_intact': { row: 3, col: 3 },          // Estado inicial (fila 4, col 4)
       'cookie_destroyed': { row: 3, col: 2 },       // Estado agrietado (fila 4, col 3)
       
-      // Bomba que explota (fila 6, columna 3)
+      // Bomb that explodes (row 6, column 3)
       'bomb': { row: 5, col: 2 },
     };
     
-    // Crear texturas individuales usando la configuración dinámica
+    // Create individual textures using dynamic configuration
     Object.entries(textureMap).forEach(([name, position]) => {
       const frame = new Rectangle(
         this.offsetX + position.col * this.spriteSize,
@@ -280,39 +280,39 @@ class Match3Game {
         this.spriteSize
       );
       
-      // Crear una nueva textura desde el atlas
+      // Create a new texture from the atlas
       const texture = new Texture(atlasTexture.baseTexture, frame);
       
       Assets.cache.set(name, texture);
       
-      // Log para verificar que las texturas especiales se cargan
+      // Log to verify that special textures are loaded
       if (name.includes('striped') || name.includes('wrapped') || name.includes('color_bomb')) {
-        console.log(`Textura especial cargada: ${name} en posición (${position.row}, ${position.col})`);
+        console.log(`Special texture loaded: ${name} at position (${position.row}, ${position.col})`);
       }
     });
   }
 
   /**
-   * Carga el fondo del juego desde el archivo
+   * Loads game background from file
    */
   private async loadBackground(): Promise<void> {
     try {
-      // Cargar la textura del fondo
+      // Load background texture
       const backgroundTexture = await Assets.load('/sprites/background_blur.png');
       Assets.cache.set('background_blur', backgroundTexture);
-      console.log('Fondo cargado correctamente');
+      console.log('Background loaded successfully');
     } catch (error) {
-      console.warn('No se pudo cargar el fondo personalizado, usando fondo por defecto:', error);
+      console.warn('Could not load custom background, using default background:', error);
     }
   }
 
   /**
-   * Crea texturas básicas para las gemas (para demostración)
+   * Creates basic textures for gems (for demonstration)
    */
   private createBasicGemTextures(): Record<string, Texture> {
     const textures: Record<string, Texture> = {};
     
-    // Colores de las gemas
+    // Gem colors
     const gemColors = {
       yellow: 0xffd700,
       blue: 0x4169e1,
@@ -321,24 +321,24 @@ class Match3Game {
       purple: 0x8a2be2
     };
     
-    // Crear texturas básicas para cada color usando Graphics
+    // Create basic textures for each color using Graphics
     Object.entries(gemColors).forEach(([color, hexColor]) => {
       const graphics = new Graphics();
       
-      // Crear círculo principal
+      // Create main circle
       graphics.beginFill(hexColor);
-      graphics.drawCircle(32, 32, 28); // Círculo de 56px de diámetro
+      graphics.drawCircle(32, 32, 28); // Circle of 56px diameter
       graphics.endFill();
       
-      // Agregar borde brillante
+      // Add bright border
       graphics.lineStyle(4, 0xffffff, 0.8);
       graphics.drawCircle(32, 32, 28);
       
-      // Agregar resplandor interno
+      // Add internal glow
       graphics.lineStyle(2, 0xffffff, 0.4);
       graphics.drawCircle(32, 32, 20);
       
-      // Generar textura desde graphics
+      // Generate texture from graphics
       textures[`gem_${color}`] = this.app.renderer.generateTexture(graphics);
     });
     
@@ -346,56 +346,56 @@ class Match3Game {
   }
 
   /**
-   * Configura las escenas del juego
+   * Sets up game scenes
    */
   private setupScenes(): void {
     this.sceneManager = new SceneManager(this.app);
     
-    // Crear y registrar la escena del juego
+    // Create and register the game scene
     const gameScene = new GameScene(this.eventEmitter);
     this.sceneManager.registerScene('game', gameScene);
     
-    console.log('Escenas configuradas');
+    console.log('Scenes configured');
   }
 
   /**
-   * Configura los eventos globales del juego
+   * Sets up global game events
    */
   private setupGlobalEvents(): void {
-    // Eventos de redimensionamiento
+    // Resize events
     window.addEventListener('resize', this.onResize.bind(this));
     
-    // Eventos del juego
+    // Game events
     this.eventEmitter.on(GAME_EVENTS.SCORE_UPDATED, this.onScoreUpdated.bind(this));
     this.eventEmitter.on(GAME_EVENTS.MOVES_UPDATED, this.onMovesUpdated.bind(this));
     this.eventEmitter.on(GAME_EVENTS.GAME_OVER, this.onGameOver.bind(this));
     
-    console.log('Eventos globales configurados');
+    console.log('Global events configured');
   }
 
   /**
-   * Inicia el juego cambiando a la escena principal
+   * Starts the game by changing to the main scene
    */
   private async startGame(): Promise<void> {
     await this.sceneManager.changeScene('game');
     
-    // Iniciar el loop de renderizado
+    // Start render loop
     this.app.ticker.add(this.onTick.bind(this));
     
-    // Iniciar música de fondo
+    // Start background music
     await this.audioService.playBackgroundMusic();
     
-    // Notificar a Facebook Mock que el juego ha comenzado
+    // Notify Facebook Mock that the game has started
     try {
       await this.facebookMock.startGameAsync();
     } catch (error) {
-      console.warn('Error al notificar inicio del juego a Facebook:', error);
+      console.warn('Error notifying game start to Facebook:', error);
     }
   }
 
   /**
-   * Loop principal del juego
-   * @param ticker - Ticker de PixiJS
+   * Main game loop
+   * @param ticker - PixiJS ticker
    */
   private onTick(ticker: any): void {
     const deltaTime = ticker.deltaTime;
@@ -403,7 +403,7 @@ class Match3Game {
   }
 
   /**
-   * Maneja el redimensionamiento de la ventana
+   * Handles window resizing
    */
   private onResize(): void {
     if (!this.isInitialized) return;
@@ -417,7 +417,7 @@ class Match3Game {
     
     this.app.renderer.resize(newWidth, newHeight);
     
-    // Notificar a la escena actual sobre el redimensionamiento
+    // Notify current scene about resizing
     const currentScene = this.sceneManager.getCurrentScene();
     if (currentScene) {
       currentScene.resize(newWidth, newHeight);
@@ -425,8 +425,8 @@ class Match3Game {
   }
 
   /**
-   * Maneja la actualización de puntuación
-   * @param score - Nueva puntuación
+   * Handles score updates
+   * @param score - New score
    */
   private onScoreUpdated(score: number): void {
     const scoreElement = document.getElementById('score-display');
@@ -434,22 +434,22 @@ class Match3Game {
       scoreElement.textContent = score.toString();
     }
     
-    // Notificar a Facebook Mock
+    // Notify Facebook Mock
     this.facebookMock.setScoreAsync(score).catch(error => {
-      console.warn('Error al actualizar puntuación en Facebook:', error);
+      console.warn('Error updating score on Facebook:', error);
     });
   }
 
   /**
-   * Maneja la actualización de movimientos
-   * @param moves - Movimientos restantes
+   * Handles moves updates
+   * @param moves - Remaining moves
    */
   private onMovesUpdated(moves: number): void {
     const movesElement = document.getElementById('moves-display');
     if (movesElement) {
       movesElement.textContent = moves.toString();
       
-      // Agregar clase de advertencia si quedan pocos movimientos
+      // Add warning class if few moves remain
       if (moves <= 5) {
         movesElement.classList.add('low');
       } else {
@@ -459,21 +459,21 @@ class Match3Game {
   }
 
   /**
-   * Maneja el fin del juego
+   * Handles game over
    */
   private async onGameOver(): Promise<void> {
-    console.log('Juego terminado');
+    console.log('Game finished');
     
-    // Notificar a Facebook Mock que el juego ha terminado
+    // Notify Facebook Mock that the game has ended
     try {
       await this.facebookMock.endGameAsync();
     } catch (error) {
-      console.warn('Error al notificar fin del juego a Facebook:', error);
+      console.warn('Error notifying game end to Facebook:', error);
     }
   }
 
   /**
-   * Muestra la pantalla de carga
+   * Shows loading screen
    */
   private showLoadingScreen(): void {
     const loadingScreen = document.getElementById('loading-screen');
@@ -483,20 +483,20 @@ class Match3Game {
   }
 
   /**
-   * Oculta la pantalla de carga
+   * Hides loading screen
    */
   private hideLoadingScreen(): void {
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
       setTimeout(() => {
         loadingScreen.classList.add('hidden');
-      }, 500); // Pequeño delay para suavizar la transición
+      }, 500); // Small delay to smooth the transition
     }
   }
 
   /**
-   * Muestra un mensaje de error
-   * @param message - Mensaje de error a mostrar
+   * Shows an error message
+   * @param message - Error message to show
    */
   public showError(message: string): void {
     const errorElement = document.getElementById('error-message');
@@ -507,17 +507,17 @@ class Match3Game {
   }
 
   /**
-   * Actualiza la configuración del spritesheet
-   * @param spriteSize - Nuevo tamaño de sprite
-   * @param offsetX - Nuevo offset X
-   * @param offsetY - Nuevo offset Y
+   * Updates spritesheet configuration
+   * @param spriteSize - New sprite size
+   * @param offsetX - New X offset
+   * @param offsetY - New Y offset
    */
   public updateSpriteConfig(spriteSize: number, offsetX: number, offsetY: number): void {
     this.spriteSize = spriteSize;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     
-    // Recargar las texturas con la nueva configuración
+    // Reload textures with new configuration
     const atlasTexture = Assets.cache.get('candy_atlas');
     if (atlasTexture) {
       this.createCandyTextures(atlasTexture as Texture);
@@ -525,7 +525,7 @@ class Match3Game {
   }
 
   /**
-   * Obtiene la configuración actual del spritesheet
+   * Gets current spritesheet configuration
    */
   public getSpriteConfig(): { spriteSize: number; offsetX: number; offsetY: number } {
     return {
@@ -536,21 +536,21 @@ class Match3Game {
   }
 
   /**
-   * Obtiene el servicio de audio
+   * Gets the audio service
    */
   getAudioService(): AudioService {
     return this.audioService;
   }
 
   /**
-   * Destruye la aplicación y libera recursos
+   * Destroys the application and frees resources
    */
   destroy(): void {
     if (this.app) {
       this.app.destroy(true);
     }
     
-    // Destruir servicio de audio y controlador
+    // Destroy audio service and controller
     this.audioController.destroy();
     this.audioService.destroy();
     
@@ -558,31 +558,31 @@ class Match3Game {
   }
 }
 
-// Inicializar el juego cuando el DOM esté listo
+// Initialize the game when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
   const game = new Match3Game();
   
-  // Hacer el juego accesible globalmente para el debug
+  // Make the game globally accessible for debugging
   (window as any).match3Game = game;
   
-  // Manejar errores no capturados
+  // Handle uncaught errors
   window.addEventListener('error', (event) => {
-    console.error('Error no capturado:', event.error);
-    game.showError('Ha ocurrido un error inesperado. Por favor, recarga la página.');
+    console.error('Uncaught error:', event.error);
+    game.showError('An unexpected error occurred. Please reload the page.');
   });
   
-  // Manejar promesas rechazadas
+  // Handle rejected promises
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('Promesa rechazada:', event.reason);
-    game.showError('Ha ocurrido un error inesperado. Por favor, recarga la página.');
+    console.error('Rejected promise:', event.reason);
+    game.showError('An unexpected error occurred. Please reload the page.');
   });
   
   try {
     await game.init();
   } catch (error) {
-    console.error('Error fatal al inicializar el juego:', error);
+    console.error('Fatal error initializing the game:', error);
   }
 });
 
-// Exportar para uso global si es necesario
+// Export for global use if needed
 export { Match3Game };
