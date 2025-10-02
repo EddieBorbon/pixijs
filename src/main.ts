@@ -3,6 +3,8 @@ import { SceneManager } from './core/SceneManager';
 import { EventEmitter } from './core/EventEmitter';
 import { GameScene } from './scenes/GameScene';
 import { FacebookMock } from './services/FacebookMock';
+import { AudioService } from './services/AudioService';
+import { AudioController } from './ui/AudioController';
 import { GAME_EVENTS } from './game/constants';
 
 /**
@@ -14,6 +16,8 @@ class Match3Game {
   private sceneManager!: SceneManager;
   private eventEmitter: EventEmitter;
   private facebookMock: FacebookMock;
+  private audioService: AudioService;
+  private audioController: AudioController;
   private isInitialized: boolean = false;
   private spriteSize: number = 99;
   private offsetX: number = 0;
@@ -22,6 +26,8 @@ class Match3Game {
   constructor() {
     this.eventEmitter = new EventEmitter();
     this.facebookMock = FacebookMock.getInstance();
+    this.audioService = AudioService.getInstance();
+    this.audioController = new AudioController(this.audioService);
     // app se inicializará en initializePixiJS()
   }
 
@@ -44,11 +50,17 @@ class Match3Game {
       // Cargar assets
       await this.loadAssets();
       
+      // Cargar audio
+      await this.loadAudio();
+      
       // Configurar escenas
       this.setupScenes();
       
       // Configurar eventos globales
       this.setupGlobalEvents();
+      
+      // Inicializar controles de audio
+      this.audioController.initialize();
       
       // Iniciar el juego
       await this.startGame();
@@ -125,6 +137,68 @@ class Match3Game {
   }
 
   /**
+   * Carga los archivos de audio del juego
+   */
+  private async loadAudio(): Promise<void> {
+    try {
+      // Cargar música de fondo
+      await this.audioService.loadBackgroundMusic('/music/jump and run - tropics.ogg');
+      
+      // Cargar efectos de sonido
+      await this.loadSoundEffects();
+      
+      console.log('Audio cargado correctamente');
+      
+    } catch (error) {
+      console.error('Error al cargar audio:', error);
+      // No lanzar error para que el juego pueda continuar sin audio
+    }
+  }
+
+  /**
+   * Carga todos los efectos de sonido
+   */
+  private async loadSoundEffects(): Promise<void> {
+    const soundEffects = [
+      // Sonidos de selección e interacción
+      { name: 'select', path: '/sfx/sfx_select.ogg' },
+      { name: 'switch', path: '/sfx/sfx_switch.ogg' },
+      { name: 'toggle', path: '/sfx/sfx_toggle.ogg' },
+      
+      // Sonidos de matches exitosos
+      { name: 'match_normal', path: '/sfx/sfx_explosionNormal.ogg' },
+      { name: 'match_special', path: '/sfx/sfx_explosionFlash.ogg' },
+      { name: 'match_goo', path: '/sfx/sfx_explosionGoo.ogg' },
+      { name: 'good1', path: '/sfx/good1.wav' },
+      { name: 'good2', path: '/sfx/good2.wav' },
+      
+      // Sonidos de error/movimiento inválido
+      { name: 'wrong', path: '/sfx/wrong.wav' },
+      { name: 'wrong2', path: '/sfx/wrong2.wav' },
+      { name: 'hurt', path: '/sfx/sfx_hurt.ogg' },
+      
+      // Sonidos especiales del juego
+      { name: 'health', path: '/sfx/sfx_health.ogg' },
+      { name: 'wave_clear', path: '/sfx/sfx_waveclear.ogg' },
+      { name: 'resurrect', path: '/sfx/sfx_resurrect.ogg' },
+      { name: 'shocked', path: '/sfx/sfx_shocked.ogg' },
+      { name: 'ray', path: '/sfx/sfx_ray.ogg' },
+      
+      // Sonidos de fin de juego
+      { name: 'game_over', path: '/sfx/sfx_death.ogg' },
+      { name: 'alarm', path: '/sfx/sfx_alarm.ogg' },
+    ];
+
+    for (const effect of soundEffects) {
+      try {
+        await this.audioService.loadSoundEffect(effect.name, effect.path);
+      } catch (error) {
+        console.warn(`No se pudo cargar el efecto de sonido ${effect.name}:`, error);
+      }
+    }
+  }
+
+  /**
    * Carga el atlas de dulces desde el archivo
    */
   private async loadCandyAtlas(): Promise<void> {
@@ -175,19 +249,26 @@ class Match3Game {
       'gem_green_striped_v': { row: 2, col: 3 },
       'gem_purple_striped_v': { row: 2, col: 4 },
       
+      // Dulces envueltos (fila 4, columnas 1-5)
+      'gem_yellow_wrapped': { row: 3, col: 0 },
+      'gem_blue_wrapped': { row: 3, col: 1 },
+      'gem_red_wrapped': { row: 3, col: 2 },
+      'gem_green_wrapped': { row: 3, col: 3 },
+      'gem_purple_wrapped': { row: 3, col: 4 },
+      
       // Dulce especial que combina con todos (fila 1, columna 6)
       'color_bomb': { row: 0, col: 5 },
       
       // Bloque que se derrite (fila 4, columnas 1-2)
-      'block_melting_1': { row: 3, col: 0 },
-      'block_melting_2': { row: 3, col: 1 },
+      'block_melting_intact': { row: 3, col: 1 },    // Estado inicial (fila 4, col 2)
+      'block_melting_damaged': { row: 3, col: 0 },   // Estado derretido (fila 4, col 1)
       
       // Galleta que se destruye (fila 4, columnas 3-4)
-      'cookie_destroyed': { row: 3, col: 2 },
-      'cookie_intact': { row: 3, col: 3 },
+      'cookie_intact': { row: 3, col: 3 },          // Estado inicial (fila 4, col 4)
+      'cookie_destroyed': { row: 3, col: 2 },       // Estado agrietado (fila 4, col 3)
       
-      // Bomba que explota (fila 5, columna 3)
-      'bomb': { row: 4, col: 2 },
+      // Bomba que explota (fila 6, columna 3)
+      'bomb': { row: 5, col: 2 },
     };
     
     // Crear texturas individuales usando la configuración dinámica
@@ -203,6 +284,11 @@ class Match3Game {
       const texture = new Texture(atlasTexture.baseTexture, frame);
       
       Assets.cache.set(name, texture);
+      
+      // Log para verificar que las texturas especiales se cargan
+      if (name.includes('striped') || name.includes('wrapped') || name.includes('color_bomb')) {
+        console.log(`Textura especial cargada: ${name} en posición (${position.row}, ${position.col})`);
+      }
     });
   }
 
@@ -295,6 +381,9 @@ class Match3Game {
     
     // Iniciar el loop de renderizado
     this.app.ticker.add(this.onTick.bind(this));
+    
+    // Iniciar música de fondo
+    await this.audioService.playBackgroundMusic();
     
     // Notificar a Facebook Mock que el juego ha comenzado
     try {
@@ -447,12 +536,23 @@ class Match3Game {
   }
 
   /**
+   * Obtiene el servicio de audio
+   */
+  getAudioService(): AudioService {
+    return this.audioService;
+  }
+
+  /**
    * Destruye la aplicación y libera recursos
    */
   destroy(): void {
     if (this.app) {
       this.app.destroy(true);
     }
+    
+    // Destruir servicio de audio y controlador
+    this.audioController.destroy();
+    this.audioService.destroy();
     
     window.removeEventListener('resize', this.onResize.bind(this));
   }

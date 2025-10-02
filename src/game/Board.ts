@@ -12,6 +12,7 @@ import {
   Match
 } from './constants';
 import { EventEmitter } from '../core/EventEmitter';
+import { AudioService } from '../services/AudioService';
 
 /**
  * Tablero principal del juego Match-3.
@@ -24,12 +25,14 @@ export class Board extends Container {
   private score: number = 0;
   private moves: number = GAME_CONFIG.INITIAL_MOVES;
   private eventEmitter: EventEmitter;
+  private audioService: AudioService;
   private currentCellSize: number = BOARD_CONFIG.CELL_SIZE;
   private currentGemSize: number = BOARD_CONFIG.GEM_SIZE;
 
   constructor(eventEmitter: EventEmitter) {
     super();
     this.eventEmitter = eventEmitter;
+    this.audioService = AudioService.getInstance();
     this.gems = this.initializeBoard();
     this.setupEventListeners();
     this.addInitialGemsToContainer();
@@ -53,6 +56,9 @@ export class Board extends Container {
       }
     }
     
+    // Agregar algunas gemas especiales de prueba para mostrar todos los tipos
+    this.addTestSpecialGems(board);
+    
     // Asegurar que no hay matches iniciales
     this.removeInitialMatches(board);
     
@@ -73,6 +79,48 @@ export class Board extends Container {
     gem.updateConfig(this.currentCellSize, this.currentGemSize);
     
     return gem;
+  }
+
+  /**
+   * Agrega gemas especiales de prueba para mostrar todos los tipos
+   * @param board - Tablero donde agregar las gemas especiales
+   */
+  private addTestSpecialGems(board: (Gem | null)[][]): void {
+    // Color bomb en la esquina superior izquierda
+    board[0][0] = new Gem(GemColor.YELLOW, { row: 0, col: 0 }, SpecialType.COLOR_BOMB);
+    board[0][0].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Gema rayada horizontal en posición (1,1)
+    board[1][1] = new Gem(GemColor.BLUE, { row: 1, col: 1 }, SpecialType.STRIPED_HORIZONTAL);
+    board[1][1].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Gema rayada vertical en posición (2,2)
+    board[2][2] = new Gem(GemColor.RED, { row: 2, col: 2 }, SpecialType.STRIPED_VERTICAL);
+    board[2][2].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Gema envuelta en posición (3,3)
+    board[3][3] = new Gem(GemColor.GREEN, { row: 3, col: 3 }, SpecialType.WRAPPED);
+    board[3][3].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Más gemas especiales para mostrar variedad
+    board[4][4] = new Gem(GemColor.PURPLE, { row: 4, col: 4 }, SpecialType.STRIPED_HORIZONTAL);
+    board[4][4].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    board[5][5] = new Gem(GemColor.YELLOW, { row: 5, col: 5 }, SpecialType.WRAPPED);
+    board[5][5].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Agregar obstáculos de prueba
+    // Bloque derretible en posición (6,1)
+    board[6][1] = new Gem(GemColor.YELLOW, { row: 6, col: 1 }, SpecialType.NORMAL, ObstacleType.MELTING_BLOCK);
+    board[6][1].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Galleta en posición (6,3)
+    board[6][3] = new Gem(GemColor.YELLOW, { row: 6, col: 3 }, SpecialType.NORMAL, ObstacleType.COOKIE);
+    board[6][3].updateConfig(this.currentCellSize, this.currentGemSize);
+    
+    // Bomba en posición (7,5)
+    board[7][5] = new Gem(GemColor.YELLOW, { row: 7, col: 5 }, SpecialType.NORMAL, ObstacleType.BOMB);
+    board[7][5].updateConfig(this.currentCellSize, this.currentGemSize);
   }
 
   /**
@@ -140,20 +188,24 @@ export class Board extends Container {
     if (this.isProcessing) return;
     
     if (this.selectedGem === null) {
-      // Primera selección
+      // Primera selección - sonido de selección
+      this.audioService.playSoundEffect('select');
       this.selectedGem = gem;
       gem.setSelected(true);
       this.eventEmitter.emit(GAME_EVENTS.GEM_SELECTED, gem);
     } else if (this.selectedGem === gem) {
-      // Deseleccionar la misma gema
+      // Deseleccionar la misma gema - sonido de toggle
+      this.audioService.playSoundEffect('toggle');
       this.selectedGem.setSelected(false);
       this.selectedGem = null;
       this.eventEmitter.emit(GAME_EVENTS.GEM_DESELECTED, gem);
     } else if (this.selectedGem.isAdjacentTo(gem)) {
-      // Intentar intercambio
+      // Intentar intercambio - sonido de switch
+      this.audioService.playSoundEffect('switch');
       this.attemptSwap(this.selectedGem, gem);
     } else {
-      // Seleccionar nueva gema
+      // Seleccionar nueva gema - sonido de selección
+      this.audioService.playSoundEffect('select');
       this.selectedGem.setSelected(false);
       this.selectedGem = gem;
       gem.setSelected(true);
@@ -217,10 +269,16 @@ export class Board extends Container {
       this.eventEmitter.emit(GAME_EVENTS.MOVES_UPDATED, this.moves);
       
       if (this.moves <= 0) {
+        // Reproducir sonido de fin de juego
+        this.audioService.playSoundEffect('game_over');
         this.eventEmitter.emit(GAME_EVENTS.GAME_OVER);
+      } else if (this.moves <= 5) {
+        // Reproducir sonido de advertencia cuando quedan pocos movimientos
+        this.audioService.playSoundEffect('alarm');
       }
     } else {
-      // El intercambio no es válido, revertir con animación
+      // El intercambio no es válido, reproducir sonido de error
+      this.audioService.playSoundEffect('wrong');
       await this.swapGems(gem1, gem2);
     }
     
@@ -308,6 +366,9 @@ export class Board extends Container {
    * @param matches - Array de matches a procesar
    */
   private async processMatches(matches: Match[]): Promise<void> {
+    // Reproducir sonido de match exitoso
+    this.playMatchSound(matches);
+    
     // Calcular puntuación
     let totalScore = 0;
     matches.forEach(match => {
@@ -323,6 +384,9 @@ export class Board extends Container {
     
     // Eliminar gemas matched
     await this.removeMatchedGems(matches);
+    
+    // Dañar obstáculos adyacentes a los matches
+    await this.damageAdjacentObstacles(matches);
     
     // Procesar gemas especiales
     await this.processSpecialGems(specialGems);
@@ -340,6 +404,26 @@ export class Board extends Container {
     }
     
     this.eventEmitter.emit(GAME_EVENTS.MATCH_PROCESSED, matches);
+  }
+
+  /**
+   * Reproduce el sonido apropiado según el tipo de match
+   * @param matches - Matches encontrados
+   */
+  private playMatchSound(matches: Match[]): void {
+    const totalMatches = matches.length;
+    const hasSpecialMatch = matches.some(match => match.positions.length >= 4);
+    
+    if (hasSpecialMatch) {
+      // Match especial (4+ gemas)
+      this.audioService.playSoundEffect('match_special');
+    } else if (totalMatches > 1) {
+      // Múltiples matches
+      this.audioService.playSoundEffect('good2');
+    } else {
+      // Match normal
+      this.audioService.playSoundEffect('match_normal');
+    }
   }
 
   /**
@@ -521,6 +605,10 @@ export class Board extends Container {
       }
     });
     
+    // Buscar patrones de L o T para crear gemas envueltas
+    const wrappedGems = this.findWrappedPatterns(matches);
+    specialGems.push(...wrappedGems);
+    
     return specialGems;
   }
 
@@ -539,6 +627,60 @@ export class Board extends Container {
     } else {
       return SpecialType.STRIPED_VERTICAL;
     }
+  }
+
+  /**
+   * Busca patrones de L o T para crear gemas envueltas
+   * @param matches - Matches existentes
+   * @returns Array de gemas envueltas creadas
+   */
+  private findWrappedPatterns(matches: Match[]): Gem[] {
+    const wrappedGems: Gem[] = [];
+    
+    // Agrupar matches por color
+    const matchesByColor = new Map<GemColor, Match[]>();
+    matches.forEach(match => {
+      if (!matchesByColor.has(match.color)) {
+        matchesByColor.set(match.color, []);
+      }
+      matchesByColor.get(match.color)!.push(match);
+    });
+    
+    // Buscar patrones de L o T para cada color
+    matchesByColor.forEach((colorMatches, color) => {
+      if (colorMatches.length >= 2) {
+        // Buscar intersecciones entre matches
+        for (let i = 0; i < colorMatches.length; i++) {
+          for (let j = i + 1; j < colorMatches.length; j++) {
+            const intersection = this.findMatchIntersection(colorMatches[i], colorMatches[j]);
+            if (intersection) {
+              // Crear gema envuelta en la intersección
+              const wrappedGem = new Gem(color, intersection, SpecialType.WRAPPED);
+              wrappedGems.push(wrappedGem);
+            }
+          }
+        }
+      }
+    });
+    
+    return wrappedGems;
+  }
+
+  /**
+   * Encuentra la intersección entre dos matches
+   * @param match1 - Primer match
+   * @param match2 - Segundo match
+   * @returns Posición de intersección o null si no hay intersección
+   */
+  private findMatchIntersection(match1: Match, match2: Match): Position | null {
+    for (const pos1 of match1.positions) {
+      for (const pos2 of match2.positions) {
+        if (pos1.row === pos2.row && pos1.col === pos2.col) {
+          return pos1;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -566,6 +708,94 @@ export class Board extends Container {
   }
 
   /**
+   * Daña obstáculos adyacentes a los matches
+   * @param matches - Matches que causan el daño
+   */
+  private async damageAdjacentObstacles(matches: Match[]): Promise<void> {
+    const damagedObstacles: Gem[] = [];
+    
+    matches.forEach(match => {
+      match.positions.forEach(pos => {
+        // Verificar las 4 direcciones adyacentes
+        const directions = [
+          { row: pos.row - 1, col: pos.col }, // Arriba
+          { row: pos.row + 1, col: pos.col }, // Abajo
+          { row: pos.row, col: pos.col - 1 }, // Izquierda
+          { row: pos.row, col: pos.col + 1 }, // Derecha
+        ];
+        
+        directions.forEach(adjPos => {
+          // Verificar que la posición esté dentro del tablero
+          if (adjPos.row >= 0 && adjPos.row < BOARD_CONFIG.ROWS &&
+              adjPos.col >= 0 && adjPos.col < BOARD_CONFIG.COLUMNS) {
+            
+            const adjacentGem = this.gems[adjPos.row][adjPos.col];
+            if (adjacentGem && adjacentGem.isObstacle()) {
+              // Dañar el obstáculo
+              adjacentGem.damageObstacle();
+              damagedObstacles.push(adjacentGem);
+            }
+          }
+        });
+      });
+    });
+    
+    // Animar el cambio de estado de los obstáculos dañados
+    if (damagedObstacles.length > 0) {
+      await this.animateObstacleDamage(damagedObstacles);
+    }
+  }
+
+  /**
+   * Anima el daño a obstáculos
+   * @param obstacles - Obstáculos dañados
+   */
+  private async animateObstacleDamage(obstacles: Gem[]): Promise<void> {
+    const damagePromises: Promise<void>[] = [];
+    
+    obstacles.forEach(obstacle => {
+      const damagePromise = new Promise<void>((resolve) => {
+        // Actualizar la textura inmediatamente
+        obstacle.updateTexture();
+        
+        // Pequeña animación de "shake" para mostrar el daño
+        const originalX = obstacle.sprite.x;
+        const originalY = obstacle.sprite.y;
+        const duration = 200;
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Efecto de shake
+          const shakeIntensity = 3 * (1 - progress);
+          const shakeX = (Math.random() - 0.5) * shakeIntensity;
+          const shakeY = (Math.random() - 0.5) * shakeIntensity;
+          
+          obstacle.sprite.x = originalX + shakeX;
+          obstacle.sprite.y = originalY + shakeY;
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Restaurar posición original
+            obstacle.sprite.x = originalX;
+            obstacle.sprite.y = originalY;
+            resolve();
+          }
+        };
+        
+        animate();
+      });
+      
+      damagePromises.push(damagePromise);
+    });
+    
+    await Promise.all(damagePromises);
+  }
+
+  /**
    * Anima la eliminación de una gema
    * @param gem - Gema a eliminar
    */
@@ -573,6 +803,7 @@ export class Board extends Container {
     return new Promise((resolve) => {
       const duration = ANIMATION_CONFIG.EXPLOSION_DURATION;
       const startTime = Date.now();
+      const baseScale = gem.gemSize / 64; // Escalado base correcto
       
       const animate = () => {
         const elapsed = Date.now() - startTime;
@@ -582,7 +813,8 @@ export class Board extends Container {
         const scaleProgress = 1 + progress * 0.5; // Crecer un 50%
         const alphaProgress = 1 - progress;
         
-        gem.sprite.scale.set(scaleProgress);
+        // Aplicar el escalado base multiplicado por el efecto de explosión
+        gem.sprite.scale.set(baseScale * scaleProgress);
         gem.sprite.alpha = alphaProgress;
         
         if (progress < 1) {
@@ -616,6 +848,9 @@ export class Board extends Container {
    * @param gem - Gema rayada a procesar
    */
   private async processStripedGem(gem: Gem): Promise<void> {
+    // Reproducir sonido especial para gema rayada
+    this.audioService.playSoundEffect('ray');
+    
     const positions: Position[] = [];
     
     if (gem.specialType === SpecialType.STRIPED_HORIZONTAL) {
@@ -638,6 +873,9 @@ export class Board extends Container {
    * @param gem - Bomba de color a procesar
    */
   private async processColorBomb(gem: Gem): Promise<void> {
+    // Reproducir sonido especial para bomba de color
+    this.audioService.playSoundEffect('match_goo');
+    
     // Eliminar todas las gemas del mismo color
     const positions: Position[] = [];
     

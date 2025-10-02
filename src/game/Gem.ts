@@ -15,7 +15,7 @@ export class Gem {
   public isAnimating: boolean = false;
   public obstacleState: number = 0; // Para animaciones de obstáculos (0 = intacto, 1 = dañado)
   private cellSize: number = BOARD_CONFIG.CELL_SIZE;
-  private gemSize: number = BOARD_CONFIG.GEM_SIZE;
+  public gemSize: number = BOARD_CONFIG.GEM_SIZE;
 
   constructor(
     color: GemColor,
@@ -56,6 +56,11 @@ export class Gem {
     
     if (texture) {
       this.sprite.texture = texture;
+      
+      // Log para verificar texturas especiales
+      if (this.specialType !== SpecialType.NORMAL) {
+        console.log(`Gema especial creada: ${this.color} ${this.specialType} con textura: ${textureName}`);
+      }
     } else {
       console.warn(`No se encontró textura para: ${textureName}`);
     }
@@ -67,7 +72,7 @@ export class Gem {
   private getTextureName(): string {
     // Si es un obstáculo, usar textura de obstáculo
     if (this.obstacleType === ObstacleType.MELTING_BLOCK) {
-      return this.obstacleState === 0 ? 'block_melting_2' : 'block_melting_1';
+      return this.obstacleState === 0 ? 'block_melting_intact' : 'block_melting_damaged';
     } else if (this.obstacleType === ObstacleType.COOKIE) {
       return this.obstacleState === 0 ? 'cookie_intact' : 'cookie_destroyed';
     } else if (this.obstacleType === ObstacleType.BOMB) {
