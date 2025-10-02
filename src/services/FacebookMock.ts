@@ -98,7 +98,7 @@ export class FacebookMock {
    * @param contextID - ID del contexto (opcional)
    * @returns Promise con los datos del leaderboard
    */
-  public async getLeaderboardAsync(contextID?: string): Promise<any[]> {
+  public async getLeaderboardAsync(_contextID?: string): Promise<any[]> {
     if (!this.isInitialized) {
       throw new Error('SDK no inicializado');
     }

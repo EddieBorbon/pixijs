@@ -4,7 +4,7 @@
  */
 
 // Mock de PixiJS para las pruebas
-global.PIXI = {
+(global as any).PIXI = {
   Graphics: class MockGraphics {
     beginFill() {}
     drawCircle() {}

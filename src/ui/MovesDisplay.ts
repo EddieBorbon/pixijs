@@ -7,8 +7,8 @@ import { Container, Text, TextStyle, Graphics } from 'pixi.js';
 export class MovesDisplay {
   public readonly container: Container;
   
-  private movesText: Text;
-  private background: Graphics;
+  private movesText!: Text;
+  private background!: Graphics;
   private currentMoves: number = 0;
   private warningThreshold: number = 5; // Mostrar advertencia cuando queden 5 o menos movimientos
 
@@ -110,7 +110,7 @@ export class MovesDisplay {
    * @param width - Nuevo ancho de la ventana
    * @param height - Nuevo alto de la ventana
    */
-  resize(width: number, height: number): void {
+  resize(width: number, _height: number): void {
     // Posicionar en la esquina superior derecha
     this.container.x = width - 220;
     this.container.y = 20;

@@ -7,8 +7,8 @@ import { Container, Text, TextStyle, Graphics } from 'pixi.js';
 export class ScoreDisplay {
   public readonly container: Container;
   
-  private scoreText: Text;
-  private background: Graphics;
+  private scoreText!: Text;
+  private background!: Graphics;
   private currentScore: number = 0;
   private targetScore: number = 0;
   private animationSpeed: number = 0.1;
@@ -101,7 +101,7 @@ export class ScoreDisplay {
    * @param width - Nuevo ancho de la ventana
    * @param height - Nuevo alto de la ventana
    */
-  resize(width: number, height: number): void {
+  resize(_width: number, _height: number): void {
     // Posicionar en la esquina superior izquierda
     this.container.x = 20;
     this.container.y = 20;
